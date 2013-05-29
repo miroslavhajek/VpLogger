@@ -1,0 +1,24 @@
+{
+    "name": "vivoportal/vivoportal",
+    "description": "Vivo Portal Logger module",
+    "license": "BSD-3-Clause",
+    "keywords": [
+        "zf2",
+		"logger"
+    ],
+    "homepage": "http://vivoportal.org/",
+    "autoload": {
+        "psr-0": {
+            "VpLogger": "src/"
+        },
+        "classmap": [
+            "./Module.php",
+            "src/"
+        ]
+    },
+
+    "require": {
+        "php": ">=5.3.3",
+        "zendframework/zendframework": ">=2.1.0"
+    }
+}
