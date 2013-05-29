@@ -15,9 +15,8 @@ class Logger extends ZfLogger
      * Log levels for performance logging
      */
     const PERF_BASE     = 8;
-    const PERF_FINE     = 9;
-    const PERF_FINER    = 10;
-    const PERF_FINEST   = 11;
+    const PERF_FINER    = 9;
+    const PERF_FINEST   = 10;
 
     /**
      * List of priority code => priority (short) name
@@ -33,7 +32,6 @@ class Logger extends ZfLogger
         self::INFO   => 'INFO',
         self::DEBUG  => 'DEBUG',
         self::PERF_BASE     => 'PERF_BASE',
-        self::PERF_FINE     => 'PERF_FINE',
         self::PERF_FINER    => 'PERF_FINER',
         self::PERF_FINEST   => 'PERF_FINEST',
     );

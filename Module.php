@@ -15,8 +15,12 @@ class Module
         //Get basic objects
         /** @var $sm ServiceManager */
         $sm             = $e->getApplication()->getServiceManager();
-        $eventManager   = $e->getApplication()->getEventManager();
+//        $eventManager   = $e->getApplication()->getEventManager();
 //        $config         = $sm->get('config');
+
+        //Initialize logger
+        $logger = $sm->get('VpLogger\logger');
+
         //Performance log
 //        $eventManager->trigger('log', $this,
 //            array ('message'    => 'Vivo Portal Module bootstrapped',
