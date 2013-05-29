@@ -6,6 +6,8 @@ return array(
         'factories'         => array(
             'VpLogger\logger'                   => 'VpLogger\Log\LoggerFactory',
             'VpLogger\writer_plugin_manager'    => 'VpLogger\Log\WriterPluginManagerFactory',
+            'VpLogger\request_start'            => 'VpLogger\Request\RequestStartFactory',
+            'VpLogger\request_id'               => 'VpLogger\Request\RequestIdFactory',
         ),
     ),
 

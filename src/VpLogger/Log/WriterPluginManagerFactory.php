@@ -16,8 +16,8 @@ class WriterPluginManagerFactory implements FactoryInterface
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
         $config         = $serviceLocator->get('config');
-        if (isset($config['logger']['writer_plugin_manager'])) {
-            $pluginsConfig  = new SmConfig($config['logger']['writer_plugin_manager']);
+        if (isset($config['VpLogger\logger']['writer_plugin_manager'])) {
+            $pluginsConfig  = new SmConfig($config['VpLogger\logger']['writer_plugin_manager']);
         } else {
             $pluginsConfig  = null;
         }
