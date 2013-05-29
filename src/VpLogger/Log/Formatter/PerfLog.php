@@ -63,7 +63,9 @@ class PerfLog extends Base
                 // Don't print an empty array
                 $value = '';
             }
-            $output = str_replace("%$name%", $value, $output);
+            if (!is_null($value)) {
+                $output = str_replace("%$name%", $value, $output);
+            }
         }
 
         if (isset($event['extra']) && empty($event['extra'])
@@ -80,8 +82,7 @@ class PerfLog extends Base
      */
     protected function getDefaultFormat()
     {
-        $format = '%deltaTime% %message%' . PHP_EOL
-                . '        %timestamp% %priorityName% (%priority%), %source%, %event%' . PHP_EOL;
+        $format = '%deltaTime%    %message%, %source%#%event%, %timestamp%, %priorityName% (%priority%)';
         return $format;
     }
 }

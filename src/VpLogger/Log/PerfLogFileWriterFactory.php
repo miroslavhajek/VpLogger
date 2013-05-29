@@ -2,11 +2,13 @@
 namespace VpLogger\Log;
 
 use VpLogger\Log\Formatter\PerfLog as PerfLogFormatter;
+use VpLogger\Log\Filter\Events as EventsFilter;
 
 use Zend\Log\Writer\Stream;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\Log\Filter\Priority;
+use Zend\Stdlib\ArrayUtils;
 
 use DateTime;
 
@@ -20,7 +22,17 @@ class PerfLogFileWriterFactory implements FactoryInterface
      * @var array
      */
     protected $options  = array(
-        'log_dir'   => null,
+        'log_dir'       => null,
+        'log_name'      => 'perf',
+        'priority_min'  => Logger::PERF_BASE,
+        'priority_max'  => Logger::PERF_FINEST,
+        'events'        => array(
+            'allow'         => array(
+                'all'           => array('*', '*'),
+            ),
+            'block'         => array(
+            ),
+        ),
     );
 
     /**
@@ -29,7 +41,7 @@ class PerfLogFileWriterFactory implements FactoryInterface
      */
     public function __construct(array $options = array())
     {
-        $this->options  = array_merge($this->options, $options);
+        $this->options  = ArrayUtils::merge($this->options, $options);
     }
 
     /**
@@ -49,11 +61,31 @@ class PerfLogFileWriterFactory implements FactoryInterface
         $requestId  = $sm->get('VpLogger\request_id');
         $filename   = sprintf('%s/vivo_perf_%s_%s.log', $this->options['log_dir'], $time, $requestId);
         $writer     = new Stream($filename);
-        //Filters
-        $filterLow  = new Priority(Logger::PERF_BASE, '>=');
-        $filterHi   = new Priority(Logger::PERF_FINEST, '<=');
-        $writer->addFilter($filterLow);
-        $writer->addFilter($filterHi);
+        //Min priority filter
+        if (!is_null($this->options['priority_min'])) {
+            $filter     = new Priority($this->options['priority_min'], '>=');
+            $writer->addFilter($filter);
+        }
+        //Max priority filter
+        if (!is_null($this->options['priority_max'])) {
+            $filter     = new Priority($this->options['priority_max']);
+            $writer->addFilter($filter);
+        }
+        //Event filter
+        if (isset($this->options['events']['allow'])) {
+            $allow  = $this->options['events']['allow'];
+        } else {
+            $allow  = array();
+        }
+        if (isset($this->options['events']['block'])) {
+            $block  = $this->options['events']['block'];
+        } else {
+            $block  = array();
+        }
+        if (count($allow) > 0 || count($block) > 0) {
+            $filter = new EventsFilter($allow, $block);
+            $writer->addFilter($filter);
+        }
         //Formatter
         $formatter  = new PerfLogFormatter();
         $writer->setFormatter($formatter);

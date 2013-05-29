@@ -8,11 +8,17 @@ use Zend\EventManager\SharedEventManagerAwareInterface;
 
 /**
  * Event listener for logging. The listener is attached to shared event manager and log event.
- * @todo avoid loging same event more than once.
+ * @todo avoid logging same event more than once.
  */
 
 class EventListener implements SharedEventManagerAwareInterface
 {
+    /**
+     * When the event does not contain
+     * @var int
+     */
+    protected $defaultLogPriority   = Logger::DEBUG;
+
     /**
      * Logger.
      * @var \Zend\Log\LoggerInterface
@@ -91,29 +97,30 @@ class EventListener implements SharedEventManagerAwareInterface
     /**
      * Log callback function attached to shared event manager.
      * @param Event $event
+     * @return bool
      */
     public function log(Event $event)
     {
         if ($event->getName() == 'log') {
-            // when event 'log' is triggered - this event hasn't any function except log something.
+            //When event 'log' is triggered - this event hasn't any function except to log something
             $log = $event->getParams();
         } else {
-            //when other events are triggered
-            $log = $event->getParam('log', array ());
+            //When other events are triggered
+            $log = $event->getParam('log', array());
         }
 
-        $source = is_object($event->getTarget()) ? get_class($event->getTarget()) : $event->getTarget();
-        $priority = isset($log['priority']) ? $log['priority'] : Logger::INFO;
+        $source     = is_object($event->getTarget()) ? get_class($event->getTarget()) : $event->getTarget();
+        $priority   = isset($log['priority']) ? $log['priority'] : $this->defaultLogPriority;
         //FIXME: setting priority to Logger::DEBUG causes problems with FirePHP writer
 
         $message  = $source . "#" . $event->getName() .
                 (isset($log['message']) ? ': ' . $log['message'] : '');
 
-        //extra infromation for custom writers
-        $extra = isset($log['extra']) && is_array($log['extra']) ? $log['extra'] : array();
-        $extra['source'] = $source;
-        $extra['event'] = $event->getName();
-        $extra['message'] = isset($log['message']) ? $log['message'] : null;
+        //Extra information for custom writers
+        $extra              = isset($log['extra']) && is_array($log['extra']) ? $log['extra'] : array();
+        $extra['source']    = $source;
+        $extra['event']     = $event->getName();
+        $extra['message']   = isset($log['message']) ? $log['message'] : null;
 
         $this->logger->log($priority, $message, $extra);
 
