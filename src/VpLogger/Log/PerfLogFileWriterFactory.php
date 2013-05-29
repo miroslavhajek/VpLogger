@@ -46,7 +46,7 @@ class PerfLogFileWriterFactory implements FactoryInterface
         $sm         = $serviceLocator->getServiceLocator();
         $now        = new DateTime();
         $time       = $now->format('Y-m-j_His');
-        $requestId  = $sm->get('request_id');
+        $requestId  = $sm->get('VpLogger\request_id');
         $filename   = sprintf('%s/vivo_perf_%s_%s.log', $this->options['log_dir'], $time, $requestId);
         $writer     = new Stream($filename);
         //Filters

@@ -16,9 +16,9 @@ class LoggerFactory implements FactoryInterface
      */
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
-        $writerPluginManager    = $serviceLocator->get('log_writer_plugin_manager');
-        $requestStart           = $serviceLocator->get('request_start');
-        $requestId              = $serviceLocator->get('request_id');
+        $writerPluginManager    = $serviceLocator->get('VpLogger\writer_plugin_manager');
+        $requestStart           = $serviceLocator->get('VpLogger\request_start');
+        $requestId              = $serviceLocator->get('VpLogger\request_id');
         $logger                 = new Logger($requestStart, $requestId);
         $logger->setWriterPluginManager($writerPluginManager);
 
@@ -26,7 +26,7 @@ class LoggerFactory implements FactoryInterface
         $writerPluginManager->addPeeringServiceManager($serviceLocator);
 
         $config = $serviceLocator->get('config');
-        $config = $config['logger'];
+        $config = $config['VpLogger\logger'];
 
         if (!count($config['writers'])) {
             $logger->addWriter('null');
