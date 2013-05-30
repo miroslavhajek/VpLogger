@@ -1,7 +1,7 @@
 <?php
 namespace VpLogger\Log;
 
-use VpLogger\Log\Formatter\PerfLog as PerfLogFormatter;
+use VpLogger\Log\Formatter\SimpleExtra;
 use VpLogger\Log\Filter\Events as EventsFilter;
 
 use Zend\Log\Writer\Stream;
@@ -13,9 +13,9 @@ use Zend\Stdlib\ArrayUtils;
 use DateTime;
 
 /**
- * PerfLogFileWriterFactory
+ * PerRequestLogFileWriterFactory
  */
-class PerfLogFileWriterFactory implements FactoryInterface
+class PerRequestLogFileWriterFactory implements FactoryInterface
 {
     /**
      * Options
@@ -23,16 +23,17 @@ class PerfLogFileWriterFactory implements FactoryInterface
      */
     protected $options  = array(
         'log_dir'       => null,
-        'log_name'      => 'perf',
-        'priority_min'  => Logger::PERF_BASE,
-        'priority_max'  => Logger::PERF_FINEST,
+        'log_name'      => 'request',
+        'priority_min'  => null,
+        'priority_max'  => null,
         'events'        => array(
             'allow'         => array(
-                'all'           => array('*', '*'),
+//                'all'           => array('*', '*'),
             ),
             'block'         => array(
             ),
         ),
+        'format'        => null,
     );
 
     /**
@@ -59,7 +60,8 @@ class PerfLogFileWriterFactory implements FactoryInterface
         $now        = new DateTime();
         $time       = $now->format('Y-m-j_His');
         $requestId  = $sm->get('VpLogger\request_id');
-        $filename   = sprintf('%s/vivo_perf_%s_%s.log', $this->options['log_dir'], $time, $requestId);
+        $filename   = sprintf('%s/%s_%s_%s.log',
+                              $this->options['log_dir'], $this->options['log_name'], $time, $requestId);
         $writer     = new Stream($filename);
         //Min priority filter
         if (!is_null($this->options['priority_min'])) {
@@ -87,7 +89,12 @@ class PerfLogFileWriterFactory implements FactoryInterface
             $writer->addFilter($filter);
         }
         //Formatter
-        $formatter  = new PerfLogFormatter();
+        if (!is_null($this->options['format'])) {
+            $format = $this->options['format'];
+        } else {
+            $format = '%deltaTime%    %message%, %source%#%event%, %timestamp%, %priorityName% (%priority%)    %extra%';
+        }
+        $formatter  = new SimpleExtra($format);
         $writer->setFormatter($formatter);
         return $writer;
     }

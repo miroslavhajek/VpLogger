@@ -5,20 +5,14 @@ use Zend\Log\LoggerInterface;
 use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
 use Zend\EventManager\SharedEventManagerAwareInterface;
+use Zend\Stdlib\ArrayUtils;
 
 /**
  * Event listener for logging. The listener is attached to shared event manager and log event.
  * @todo avoid logging same event more than once.
  */
-
 class EventListener implements SharedEventManagerAwareInterface
 {
-    /**
-     * When the event does not contain
-     * @var int
-     */
-    protected $defaultLogPriority   = Logger::DEBUG;
-
     /**
      * Logger.
      * @var \Zend\Log\LoggerInterface
@@ -44,11 +38,12 @@ class EventListener implements SharedEventManagerAwareInterface
      * @var array
      */
     protected $options = array (
-            'attach' => array (
-                array('*', 'log'), //log 'log' events
-//                array('*', '*'), //log all events
-            )
-        );
+        'attach' => array (
+            //array('*', '*'), //listen for all events
+        ),
+        //Default priority to use when the event does not explicitly specify the logging priority
+        'default_priority'  => Logger::DEBUG,
+    );
 
    /**
     * Constructor.
@@ -57,9 +52,13 @@ class EventListener implements SharedEventManagerAwareInterface
     */
    public function __construct(LoggerInterface $logger, array $options = array())
     {
-        $this->logger = $logger;
-        if ($options) {
-            $this->options = $options;
+        $this->logger   = $logger;
+        $this->options  = array_merge($this->options, $options);
+        //Remove null items (configuration override support)
+        foreach ($this->options['attach'] as $key => $value) {
+            if (is_null($value)) {
+                unset($this->options['attach'][$key]);
+            }
         }
     }
 
@@ -110,8 +109,7 @@ class EventListener implements SharedEventManagerAwareInterface
         }
 
         $source     = is_object($event->getTarget()) ? get_class($event->getTarget()) : $event->getTarget();
-        $priority   = isset($log['priority']) ? $log['priority'] : $this->defaultLogPriority;
-        //FIXME: setting priority to Logger::DEBUG causes problems with FirePHP writer
+        $priority   = isset($log['priority']) ? $log['priority'] : $this->options['default_priority'];
 
         $message  = $source . "#" . $event->getName() .
                 (isset($log['message']) ? ': ' . $log['message'] : '');

@@ -10,17 +10,16 @@ use Traversable;
 /**
  * PerfLog
  */
-class PerfLog extends Base
+class SimpleExtra extends Base
 {
     /**
      * Format specifier for log messages
      * @var string
      */
-    protected $format;
+    protected $format   = '%request%  %timestamp%  %deltaTime%    %message%, %source%#%event%, %priorityName% (%priority%)    %extra%';
 
     /**
      * Class constructor
-     *
      * @see http://php.net/manual/en/function.date.php
      * @param null|string $format Format specifier for log messages
      * @param null|string $dateTimeFormat Format specifier for DateTime objects in event data
@@ -38,7 +37,9 @@ class PerfLog extends Base
         if (isset($format) && !is_string($format)) {
             throw new Exception\InvalidArgumentException('Format must be a string');
         }
-        $this->format = isset($format) ? $format : $this->getDefaultFormat();
+        if (isset($format)) {
+            $this->format   = $format;
+        }
         parent::__construct($dateTimeFormat);
     }
 
@@ -67,22 +68,11 @@ class PerfLog extends Base
                 $output = str_replace("%$name%", $value, $output);
             }
         }
-
         if (isset($event['extra']) && empty($event['extra'])
             && false !== strpos($this->format, '%extra%')
         ) {
             $output = rtrim($output, ' ');
         }
         return $output;
-    }
-
-    /**
-     * Returns default format
-     * @return string
-     */
-    protected function getDefaultFormat()
-    {
-        $format = '%deltaTime%    %message%, %source%#%event%, %timestamp%, %priorityName% (%priority%)';
-        return $format;
     }
 }
