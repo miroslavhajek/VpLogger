@@ -22,6 +22,7 @@ class WriterPluginManagerFactory implements FactoryInterface
             $pluginsConfig  = null;
         }
         $pluginManager  = new WriterPluginManager($pluginsConfig);
+        $pluginManager->setShareByDefault(false);
         return $pluginManager;
     }
 }
