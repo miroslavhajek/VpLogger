@@ -54,7 +54,7 @@ class DailyLogFileWriterFactory implements FactoryInterface
         if (!$this->options['log_dir']) {
             throw new Exception\ConfigException(sprintf("%s: 'log_dir' option not set", __METHOD__));
         }
-        $date       = date('Y-m-j');
+        $date       = date('Y-m-d');
         $filename   = sprintf('%s/%s_%s.log', $this->options['log_dir'], $this->options['log_name'], $date);
         $writer     = new Stream($filename);
         //Filters

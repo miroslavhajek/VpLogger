@@ -58,7 +58,7 @@ class PerRequestLogFileWriterFactory implements FactoryInterface
         }
         $sm         = $serviceLocator->getServiceLocator();
         $now        = new DateTime();
-        $time       = $now->format('Y-m-j_His');
+        $time       = $now->format('Y-m-d_His');
         $requestId  = $sm->get('VpLogger\request_id');
         $filename   = sprintf('%s/%s_%s_%s.log',
                               $this->options['log_dir'], $this->options['log_name'], $time, $requestId);
