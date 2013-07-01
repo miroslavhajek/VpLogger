@@ -2,6 +2,7 @@
 namespace VpLogger\Log;
 
 use VpLogger\Log\Filter\Events as EventsFilter;
+use VpLogger\Log\Filter\BlockAll as BlockAllFilter;
 use VpLogger\Log\Formatter\SimpleExtra;
 use VpLogger\Log\Writer\FirePhp as FirePhpWriter;
 
@@ -9,6 +10,7 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\Log\Filter\Priority;
 use Zend\Stdlib\ArrayUtils;
+use Zend\Console\Request as ConsoleRequest;
 
 /**
  * FirePhpWriterFactory
@@ -49,41 +51,50 @@ class FirePhpWriterFactory implements FactoryInterface
      */
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
-//        $sm         = $serviceLocator->getServiceLocator();
+        $sm         = $serviceLocator->getServiceLocator();
         $writer     = new  FirePhpWriter();
-        //Min priority filter
-        if (!is_null($this->options['priority_min'])) {
-            $filter     = new Priority($this->options['priority_min'], '>=');
+        //BlockAll filter (for Console request)
+        $request    = $sm->get('request');
+        if ($request instanceof ConsoleRequest) {
+            //We are in a console request, block all messages sent to the FirePhp, otherwise problems when mixing
+            //output with FirePhp logs (i.e. headers)
+            $filter     = new BlockAllFilter();
             $writer->addFilter($filter);
-        }
-        //Max priority filter
-        if (!is_null($this->options['priority_max'])) {
-            $filter     = new Priority($this->options['priority_max']);
-            $writer->addFilter($filter);
-        }
-        //Event filter
-        if (isset($this->options['events']['allow'])) {
-            $allow  = $this->options['events']['allow'];
         } else {
-            $allow  = array();
+            //Min priority filter
+            if (!is_null($this->options['priority_min'])) {
+                $filter     = new Priority($this->options['priority_min'], '>=');
+                $writer->addFilter($filter);
+            }
+            //Max priority filter
+            if (!is_null($this->options['priority_max'])) {
+                $filter     = new Priority($this->options['priority_max']);
+                $writer->addFilter($filter);
+            }
+            //Event filter
+            if (isset($this->options['events']['allow'])) {
+                $allow  = $this->options['events']['allow'];
+            } else {
+                $allow  = array();
+            }
+            if (isset($this->options['events']['block'])) {
+                $block  = $this->options['events']['block'];
+            } else {
+                $block  = array();
+            }
+            if (count($allow) > 0 || count($block) > 0) {
+                $filter = new EventsFilter($allow, $block);
+                $writer->addFilter($filter);
+            }
+            //Formatter
+            if (!is_null($this->options['format'])) {
+                $format = $this->options['format'];
+            } else {
+                $format = '%deltaTime% %message%, %source%#%event%, %timestamp%, %priorityName% (%priority%)';
+            }
+            $formatter  = new SimpleExtra($format);
+            $writer->setFormatter($formatter);
         }
-        if (isset($this->options['events']['block'])) {
-            $block  = $this->options['events']['block'];
-        } else {
-            $block  = array();
-        }
-        if (count($allow) > 0 || count($block) > 0) {
-            $filter = new EventsFilter($allow, $block);
-            $writer->addFilter($filter);
-        }
-        //Formatter
-        if (!is_null($this->options['format'])) {
-            $format = $this->options['format'];
-        } else {
-            $format = '%deltaTime% %message%, %source%#%event%, %timestamp%, %priorityName% (%priority%)';
-        }
-        $formatter  = new SimpleExtra($format);
-        $writer->setFormatter($formatter);
         return $writer;
     }
 }
