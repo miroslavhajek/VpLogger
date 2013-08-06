@@ -3,14 +3,12 @@ namespace VpLogger\Log;
 
 use VpLogger\Log\Formatter\SimpleExtra;
 use VpLogger\Log\Filter\Events as EventsFilter;
+use VpLogger\Log\Writer\Stream;
 
-use Zend\Log\Writer\Stream;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\Log\Filter\Priority;
 use Zend\Stdlib\ArrayUtils;
-
-use DateTime;
 
 /**
  * PerRequestLogFileWriterFactory
@@ -57,11 +55,9 @@ class PerRequestLogFileWriterFactory implements FactoryInterface
             throw new Exception\ConfigException(sprintf("%s: 'log_dir' option not set", __METHOD__));
         }
         $sm         = $serviceLocator->getServiceLocator();
-        $now        = new DateTime();
-        $time       = $now->format('Y-m-d_His');
         $requestId  = $sm->get('VpLogger\request_id');
         $filename   = sprintf('%s/%s_%s_%s.log',
-                              $this->options['log_dir'], $this->options['log_name'], $time, $requestId);
+                              $this->options['log_dir'], $this->options['log_name'], date('Y-m-d_His'), $requestId);
         $writer     = new Stream($filename);
         //Min priority filter
         if (!is_null($this->options['priority_min'])) {

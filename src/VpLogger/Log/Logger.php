@@ -1,9 +1,8 @@
 <?php
 namespace VpLogger\Log;
 
+use VpLogger\Log\Writer\DirectWriterInterface;
 use Zend\Log\Logger as ZfLogger;
-
-use Traversable;
 
 /**
  * Logger
@@ -75,11 +74,38 @@ class Logger extends ZfLogger
      */
     public function log($priority, $message, $extra = array())
     {
-        $deltaTime          = round((microtime(true) - $this->start)*1000, 2);
+        parent::log($priority, $message, $this->prepareExtra($extra));
+    }
+
+    public function writeLine($message, $extra = array())
+    {
+        $event = array(
+            'timestamp'    => new \DateTime(),
+            'priority'     => 0,
+            'priorityName' => 'INFO_LINE',
+            'message'      => (string) $message,
+            'extra'        => $this->prepareExtra($extra),
+        );
+
+        foreach ($this->processors->toArray() as $processor) {
+            $event = $processor->process($event);
+        }
+
+        foreach ($this->writers->toArray() as $writer) {
+            if ($writer instanceof DirectWriterInterface) {
+                $writer->writeLine($event);
+            }
+        }
+    }
+
+    private function prepareExtra(array $extra = array())
+    {
+        $deltaTime = round((microtime(true) - $this->start)*1000, 2);
         //Format to total length 8 chars, leading zeros, two decimals
         $extra['deltaTime'] = sprintf('%08.2F', $deltaTime);
         $extra['request']   = $this->loggerId;
-        parent::log($priority, $message, $extra);
+
+        return $extra;
     }
 
     /**

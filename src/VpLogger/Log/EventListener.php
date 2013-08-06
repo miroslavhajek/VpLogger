@@ -103,6 +103,19 @@ class EventListener implements SharedEventManagerAwareInterface
         if ($event->getName() == 'log') {
             //When event 'log' is triggered - this event hasn't any function except to log something
             $log = $event->getParams();
+        } else if($event->getName() == 'log:write') {
+            $source  = is_object($event->getTarget()) ? get_class($event->getTarget()) : $event->getTarget();
+            $log     = $event->getParams();
+            $message = isset($log['message']) ? $log['message'] : '';
+
+            //Extra information for custom writers
+            $extra            = isset($log['extra']) && is_array($log['extra']) ? $log['extra'] : array();
+            $extra['source']  = $source;
+            $extra['event']   = $event->getName();
+
+            $this->logger->writeLine($message, $extra);
+
+            return true;
         } else {
             //When other events are triggered
             $log = $event->getParam('log', array());
